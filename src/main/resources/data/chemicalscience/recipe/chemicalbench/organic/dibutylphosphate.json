@@ -15,6 +15,13 @@
     "amount": 200,
     "id": "chemicalscience:dibutylphosphate"
   },
+  "fluidbi": [
+    {
+      "amount": 200,
+      "chance": 1.0,
+      "fluid": "chemicalscience:tributylphosphate"
+    }
+  ],
   "experience": 0.0,
   "ticks": 200,
   "usagepertick": 600.0

@@ -195,7 +195,7 @@ public class CSBlocks {
     public static final DeferredBlock<Block> SCAFFOLDING_STEEL_GRATE_HOLLOW = registerBlock("scaffolding_grate_steel_hollow", () -> new CSScaffoldingOpen(BlockBehaviour.Properties.of().noOcclusion().sound(SoundType.METAL).strength(3f)));
     public static final DeferredBlock<Block> SCAFFOLDING_STEEL_GLASS = registerBlock("scaffolding_glass_steel", () -> new Block(BlockBehaviour.Properties.of().noOcclusion().sound(SoundType.METAL).strength(3f)));
     public static final DeferredBlock<SlabBlock> SCAFFOLDING_STEEL_GLASS_SLAB = registerBlock("slab_scaffolding_glass_steel", () -> new SlabBlock(BlockBehaviour.Properties.of().noOcclusion().sound(SoundType.METAL).strength(3f)));
-    public static final DeferredBlock<Block> SCAFFOLDING_STEEL_GLASS_HOLLOW = registerBlock("scaffolding_glass_steel_hollow", () -> new CSScaffoldingOpen(BlockBehaviour.Properties.of().noOcclusion().sound(SoundType.METAL).strength(3f)));
+    public static final DeferredBlock<Block> SCAFFOLDING_STEEL_GLASS_HOLLOW = registerBlock("scaffolding_glass_steel_hollow", () -> new CSScaffoldingHollow(BlockBehaviour.Properties.of().noOcclusion().sound(SoundType.METAL).strength(3f)));
     public static final DeferredBlock<Block> GRATE_STEEL = registerBlock("grate_steel", () -> new Block(BlockBehaviour.Properties.of().noOcclusion().sound(SoundType.METAL).strength(3f)));
     public static final DeferredBlock<CSLadderBlock> LADDER_STEEL = registerBlock("ladder_steel", () -> new CSLadderBlock(BlockBehaviour.Properties.of().noOcclusion().sound(SoundType.METAL).strength(3f)));
 

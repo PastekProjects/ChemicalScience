@@ -71,19 +71,48 @@ public class TileChemicalBench extends TileMultiblockController implements ITick
 
     public TileChemicalBench(BlockPos pos, BlockState state) {
         super(CSTiles.TILE_CHEMICAL_BENCH.get(), pos, state);
-        addComponent(new ComponentElectrodynamic(this, false, true).setInputDirections(BlockEntityUtils.MachineDirection.BOTTOM).voltage(VoltaicCapabilities.DEFAULT_VOLTAGE*2));
-        addComponent(new ComponentFluidHandlerMulti(this).setInputDirections(BlockEntityUtils.MachineDirection.RIGHT)
+
+        getComponent(IComponentType.Tickable).ifPresent(component -> {
+            ComponentTickable tickable = (ComponentTickable) component;
+            tickable.tickServer(this::tickServer);
+            tickable.tickClient(this::tickClient);
+        });
+
+        addComponent(new ComponentElectrodynamic(this, false, true)
+                .setInputDirections(BlockEntityUtils.MachineDirection.BOTTOM)
+                .voltage(VoltaicCapabilities.DEFAULT_VOLTAGE * 2));
+
+        addComponent(new ComponentFluidHandlerMulti(this)
+                .setInputDirections(BlockEntityUtils.MachineDirection.RIGHT)
                 .setInputTanks(4, FLUID_TANK_CAPACITY, FLUID_TANK_CAPACITY, FLUID_TANK_CAPACITY, FLUID_TANK_CAPACITY)
                 .setOutputTanks(4, FLUID_TANK_CAPACITY, FLUID_TANK_CAPACITY, FLUID_TANK_CAPACITY, FLUID_TANK_CAPACITY)
                 .setRecipeType(CSRecipies.CHEMICAL_BENCH_TYPE.get()));
-        addComponent(new ComponentGasHandlerMulti(this).setInputDirections(BlockEntityUtils.MachineDirection.RIGHT)
+
+        addComponent(new ComponentGasHandlerMulti(this)
+                .setInputDirections(BlockEntityUtils.MachineDirection.RIGHT)
                 .setInputTanks(4, new int[]{GAS_TANK_CAPACITY, GAS_TANK_CAPACITY, GAS_TANK_CAPACITY, GAS_TANK_CAPACITY}, new int[]{1000, 1000, 1000, 1000}, new int[]{1024, 1024, 1024, 1024})
                 .setOutputTanks(4, new int[]{GAS_TANK_CAPACITY, GAS_TANK_CAPACITY, GAS_TANK_CAPACITY, GAS_TANK_CAPACITY}, new int[]{1000, 1000, 1000, 1000}, new int[]{1024, 1024, 1024, 1024})
                 .setCondensedHandler(getCondensedHandler()));
-        addComponent(new ComponentContainerProvider(SubtypeChemicalMachine.chemicalbench.tag(), this).createMenu((id, player) -> new ContainerChemicalBench(id, player, requireComponent(IComponentType.Inventory), getCoordsArray())));
-        addComponent(new ComponentInventory(this, ComponentInventory.InventoryBuilder.newInv().processors(1, 6, 1, 5).bucketInputs(4).bucketOutputs(4).gasInputs(4).gasOutputs(4).upgrades(3)).validUpgrades(ContainerChemicalBench.VALID_UPGRADES).valid(machineValidator()));
-        addComponent(new ComponentProcessor(this).canProcess(this::canProcessChemicalBench).process(this::process));
-        condensedFluidFromGas = this.property(new SingleProperty(getPropertyManager(), PropertyTypes.FLUID_STACK, "condensedfluidfromgas", FluidStack.EMPTY));
+
+        addComponent(new ComponentInventory(this, ComponentInventory.InventoryBuilder.newInv()
+                .processors(1, 6, 1, 5)
+                .bucketInputs(4).bucketOutputs(4)
+                .gasInputs(4).gasOutputs(4)
+                .upgrades(3))
+                .validUpgrades(ContainerChemicalBench.VALID_UPGRADES)
+                .valid(machineValidator()));
+
+        addComponent(new ComponentContainerProvider(SubtypeChemicalMachine.chemicalbench.tag(), this)
+                .createMenu((id, player) -> new ContainerChemicalBench(id, player,
+                        this.<ComponentInventory>getComponent(IComponentType.Inventory)
+                                .orElseThrow(() -> new IllegalStateException("Missing Inventory Component")),
+                        getCoordsArray())));
+
+        addComponent(new ComponentProcessor(this)
+                .canProcess(this::canProcessChemicalBench)
+                .process(this::process));
+
+        condensedFluidFromGas = this.property(new SingleProperty<>(getPropertyManager(), PropertyTypes.FLUID_STACK, "condensedfluidfromgas", FluidStack.EMPTY));
     }
 
     public boolean canProcessChemicalBench(ComponentProcessor pr, Level level, int procNumber) {
@@ -91,35 +120,49 @@ public class TileChemicalBench extends TileMultiblockController implements ITick
         if (BlockEntityUtils.isLit(this) ^ canProcess) {
             BlockEntityUtils.updateLit(this, canProcess);
         }
-
         return canProcess;
     }
 
-    @SuppressWarnings("static-method")
     private boolean canProcess(ComponentProcessor pr, Level level, int procNumber) {
-	ChemicalBenchRecipe recipe = pr.prepareRecipe(procNumber, CSRecipies.CHEMICAL_BENCH_TYPE.get(),
-		ChemicalBenchRecipe.class);
+        if (!this.isFormed.getValue()) {
+            return false;
+        }
 
-	if (recipe == null)
-	    return false;
+        ChemicalBenchRecipe recipe = pr.prepareRecipe(procNumber, CSRecipies.CHEMICAL_BENCH_TYPE.get(), ChemicalBenchRecipe.class);
+        if (recipe == null) {
+            return false;
+        }
 
-	return pr.canProcessMaterialRecipe(recipe, procNumber, 1, 1);
+        return pr.canProcessMaterialRecipe(recipe, procNumber, 1, 1);
     }
 
     private void process(ComponentProcessor pr, Level level, int procNumber) {
-	pr.processMaterialRecipe(procNumber, ChemicalBenchRecipe.class, 1, 1);
+        pr.processMaterialRecipe(procNumber, ChemicalBenchRecipe.class, 1, 1);
     }
 
-    @Override
     public void tickServer(Level level, ComponentTickable tickable) {
-        super.tickServer(level, tickable);
-        ComponentFluidHandlerMulti fluidHandler = requireComponent(IComponentType.FluidHandler);
-        ComponentGasHandlerMulti gasHandler = requireComponent(IComponentType.GasHandler);
+        getComponent(IComponentType.FluidHandler).ifPresent(fluidHandler -> {
+            if (fluidHandler instanceof ComponentFluidHandlerMulti multi) {
+                FluidUtilities.drainItem(this, multi.getInputTanks());
+                FluidUtilities.fillItem(this, multi.getOutputTanks());
+            }
+        });
 
-        FluidUtilities.drainItem(this, fluidHandler.getInputTanks());
-        FluidUtilities.fillItem(this, fluidHandler.getOutputTanks());
-        GasUtilities.drainItem(this, gasHandler.getInputTanks());
-        GasUtilities.fillItem(this, gasHandler.getOutputTanks());
+        getComponent(IComponentType.GasHandler).ifPresent(gasHandler -> {
+            if (gasHandler instanceof ComponentGasHandlerMulti multi) {
+                GasUtilities.drainItem(this, multi.getInputTanks());
+                GasUtilities.fillItem(this, multi.getOutputTanks());
+            }
+        });
+    }
+
+    public void tickClient(Level level, ComponentTickable tickable) {
+        if (this.shouldPlaySound()) {
+            if (!this.isSoundPlaying) {
+                this.isSoundPlaying = true;
+                SoundBarrierMethods.playTileSound(ElectrodynamicsSounds.SOUND_HUM.get(), this, true);
+            }
+        }
     }
 
     public BiConsumer<GasTank, GenericTile> getCondensedHandler() {
@@ -140,21 +183,9 @@ public class TileChemicalBench extends TileMultiblockController implements ITick
                         FluidStack newFluid = new FluidStack(condensedFluid, Math.min(tankGas.getAmount(), 10000));
                         this.condensedFluidFromGas.setValue(newFluid);
                     }
-
                 }
             }
         };
-    }
-
-    public void tickClient(ComponentTickable tickable) {
-        if (this.shouldPlaySound()) {
-
-            if (!this.isSoundPlaying) {
-                this.isSoundPlaying = true;
-                SoundBarrierMethods.playTileSound(ElectrodynamicsSounds.SOUND_HUM.get(), this, true);
-            }
-
-        }
     }
 
     @Override
@@ -164,12 +195,25 @@ public class TileChemicalBench extends TileMultiblockController implements ITick
 
     @Override
     public boolean shouldPlaySound() {
-        return ((ComponentProcessor)this.requireComponent(IComponentType.Processor)).isActive(0);
+        return getComponent(IComponentType.Processor)
+                .map(p -> ((ComponentProcessor) p).isActive(0))
+                .orElse(false);
     }
 
     @Override public @Nullable IFluidHandler getFluidHandlerCapability(@Nullable Direction side){ return null; }
     @Override public @Nullable ICapabilityElectrodynamic getElectrodynamicCapability(@Nullable Direction side){ return null; }
-    @Nullable @Override public ICapabilityElectrodynamic getSlaveCapabilityElectrodynamic(TileMultiblockSlave slave, @Nullable Direction side) {if (slave.index.getValue() != 1) {return null;}return this.<ComponentElectrodynamic>requireComponent(IComponentType.Electrodynamic).getCapability(side, CapabilityInputType.NONE);}
+
+    @Nullable
+    @Override
+    public ICapabilityElectrodynamic getSlaveCapabilityElectrodynamic(TileMultiblockSlave slave, @Nullable Direction side) {
+        if (slave.index.getValue() != 1) {
+            return null;
+        }
+        return getComponent(IComponentType.Electrodynamic)
+                .map(electro -> ((ComponentElectrodynamic) electro).getCapability(side, CapabilityInputType.NONE))
+                .orElse(null);
+    }
+
     @Override public @Nullable IItemHandler getItemHandlerCapability(@Nullable Direction side){ return null; }
 
     @Override
@@ -183,10 +227,12 @@ public class TileChemicalBench extends TileMultiblockController implements ITick
     }
 
     @Override
-    public InteractionResult useWithoutItem(Level level, Player player, BlockHitResult hit){ return isFormed.getValue() ? super.useWithoutItem(level, player, hit) : InteractionResult.FAIL; }
+    public InteractionResult useWithoutItem(Level level, Player player, BlockHitResult hit){
+        return isFormed.getValue() ? super.useWithoutItem(level, player, hit) : InteractionResult.FAIL;
+    }
 
     @Override
-    public void formMultiblock(Level level ) {
+    public void formMultiblock(Level level) {
         Direction facing = this.getFacing().getOpposite();
         List<MultiblockSlaveNode> nodes = Multiblock.getNodes(level, this.getResourceKey(), facing);
         int index = 0;
@@ -201,7 +247,7 @@ public class TileChemicalBench extends TileMultiblockController implements ITick
             TileMultiblockSlave slave = (TileMultiblockSlave) level.getBlockEntity(nodePos);
             if (slave != null) {
                 BlockState disguise = node.replaceState();
-                    slave.setDisguise(disguise);
+                slave.setDisguise(disguise);
 
                 slave.controller.setValue(this.getBlockPos());
                 slave.index.setValue(index);
@@ -214,7 +260,7 @@ public class TileChemicalBench extends TileMultiblockController implements ITick
             ++index;
         }
 
-        level.playSound((Player) null, this.getBlockPos(), SoundEvents.ANVIL_PLACE, SoundSource.BLOCKS, 1.0F, 1.0F);
+        level.playSound(null, this.getBlockPos(), SoundEvents.ANVIL_PLACE, SoundSource.BLOCKS, 1.0F, 1.0F);
     }
 
     @Override public ResourceLocation getMultiblockId(){ return ID; }

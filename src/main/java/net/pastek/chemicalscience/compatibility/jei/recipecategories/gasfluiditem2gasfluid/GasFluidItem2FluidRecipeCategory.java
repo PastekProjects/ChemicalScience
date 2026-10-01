@@ -40,10 +40,10 @@ public abstract class GasFluidItem2FluidRecipeCategory<T extends GasFluidItem2Fl
 
     @Override
     public List<List<FluidStack>> getFluidInputs(GasFluidItem2FluidRecipe recipe) {
-        List<List<FluidStack>> ingredients = new ArrayList();
+        List<List<FluidStack>> ingredients = new ArrayList<>();
 
         for(FluidIngredient ing : recipe.getFluidIngredients()) {
-            List<FluidStack> fluids = new ArrayList();
+            List<FluidStack> fluids = new ArrayList<>();
 
             for(FluidStack stack : ing.getMatchingFluids()) {
                 if (!BuiltInRegistries.FLUID.getKey(stack.getFluid()).toString().toLowerCase(Locale.ROOT).contains("flow")) {
@@ -59,7 +59,7 @@ public abstract class GasFluidItem2FluidRecipeCategory<T extends GasFluidItem2Fl
 
     @Override
     public List<List<ItemStack>> getItemInputs(GasFluidItem2FluidRecipe recipe) {
-        List<List<ItemStack>> ingredients = new ArrayList();
+        List<List<ItemStack>> ingredients = new ArrayList<>();
 
         for(CountableIngredient ing : recipe.getCountedIngredients()) {
             ingredients.add(Arrays.asList(ing.getItemsArray()));

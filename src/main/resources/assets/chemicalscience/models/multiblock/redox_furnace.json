@@ -1,7 +1,9 @@
 {
   "loader": "neoforge:obj",
   "model": "chemicalscience:models/multiblock/redox_furnace.obj",
-  "detectCullableFaces": false,
-  "flipV": true,
-  "automaticNormals": false
+  "automatic_culling": false,
+  "flip_v": false,
+  "automatic_normals": true,
+  "shade_quads": true,
+  "render_type": "minecraft:cutout"
 }

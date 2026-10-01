@@ -68,6 +68,7 @@ dependencies {
     compileOnly "mezz.jei:jei-${minecraft_version}-common-api:${jei_version}"
     compileOnly "mezz.jei:jei-${minecraft_version}-neoforge-api:${jei_version}"
     localRuntime "mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}"
+    localRuntime "nuclearscience:Nuclear-Science:1.21.1-0.9.0"
     implementation "net.neoforged:neoforge:${neo_version}"
     implementation "voltaic:Voltaic:1.21.1-1.1.0"
     implementation "electrodynamics:Electrodynamics:1.21.1-1.1.0"

@@ -24,5 +24,11 @@ public class CSNetwork {
                 PacketTransparencyTogglePayload.STREAM_CODEC,
                 PacketTransparencyTogglePayload::handleData
         );
+
+        registrar.playToServer(
+               ServerboundCSFluidGaugeClickPayload.TYPE,
+               ServerboundCSFluidGaugeClickPayload.STREAM_CODEC,
+               ServerboundCSFluidGaugeClickPayload::handle
+        );
     }
 }
