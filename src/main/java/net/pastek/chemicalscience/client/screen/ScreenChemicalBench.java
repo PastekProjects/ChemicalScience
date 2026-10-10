@@ -6,7 +6,6 @@ import net.minecraft.world.entity.player.Inventory;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.pastek.chemicalscience.ChemicalScience;
-import net.pastek.chemicalscience.client.screen.component.CSWrapperCyclableFluidGauge;
 import net.pastek.chemicalscience.common.inventory.container.ContainerChemicalBench;
 import net.pastek.chemicalscience.prefab.screen.component.ScreenComponentFluidInfo;
 import net.pastek.chemicalscience.prefab.screen.component.ScreenComponentGasInfo;
@@ -14,6 +13,7 @@ import voltaic.prefab.screen.component.types.ScreenComponentProgress;
 import voltaic.prefab.screen.component.types.ScreenComponentProgress.ProgressBars;
 import voltaic.prefab.screen.component.types.ScreenComponentSimpleLabel;
 import voltaic.prefab.screen.component.types.guitab.ScreenComponentElectricInfo;
+import voltaic.prefab.screen.component.types.wrapper.WrapperCyclableFluidGauge;
 import voltaic.prefab.screen.component.types.wrapper.WrapperCyclableGasGauge;
 import voltaic.prefab.screen.component.types.wrapper.WrapperInventoryIO;
 import voltaic.prefab.screen.component.utils.AbstractScreenComponentInfo;
@@ -38,8 +38,8 @@ public class ScreenChemicalBench extends GenericMaterialScreen<ContainerChemical
         this.addComponent(new ScreenComponentProgress(ProgressBars.PROGRESS_ARROW_RIGHT_BIG, () -> container.getSafeHost()
                 .flatMap(tile -> tile.<ComponentProcessor>getComponent(IComponentType.Processor)).filter(processor -> processor.isActive(0) && processor.requiredTicks.getValue()[0] > 0).map(processor -> (float) (processor.operatingTicks.getValue()[0] / processor.requiredTicks.getValue()[0])).orElse(0.0F), 56, 49));
 
-        CSWrapperCyclableFluidGauge fluidOutput = new CSWrapperCyclableFluidGauge(135, 24, container, this, false);
-        CSWrapperCyclableFluidGauge fluidInput = new CSWrapperCyclableFluidGauge(9, 24, container, this, true);
+        WrapperCyclableFluidGauge fluidOutput = new WrapperCyclableFluidGauge(135, 24, container, this, false);
+        WrapperCyclableFluidGauge fluidInput = new WrapperCyclableFluidGauge(9, 24, container, this, true);
         WrapperCyclableGasGauge gasOutput = new WrapperCyclableGasGauge(153, 24, container, this, false);
         WrapperCyclableGasGauge gasInput = new WrapperCyclableGasGauge(27, 24, container, this, true);
 

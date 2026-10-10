@@ -126,34 +126,39 @@ public class ChemicalBenchRecipe extends AbstractMaterialRecipe {
 	List<CountableIngredient> consumableReqs = itemIngredients.stream().filter(i -> !i.isCatalyst())
 		.map(CSCountableIngredient::ingredient).toList();
 
-	for (CSCountableIngredient req : catalystReqs) {
-	    boolean matchFound = false;
-	    for (int i = 0; i < availableInputs.size(); i++) {
-		ItemStack stackInSlot = availableInputs.get(i);
+        List<Integer> matchedSlotIndices = new ArrayList<>();
 
-		if (!stackInSlot.isEmpty() && req.ingredient().test(stackInSlot)) {
-		    availableInputs.set(i, ItemStack.EMPTY);
-		    matchFound = true;
-		    break;
-		}
-	    }
+        for (CSCountableIngredient req : catalystReqs) {
+            boolean matchFound = false;
+            for (int i = 0; i < availableInputs.size(); i++) {
+                ItemStack stackInSlot = availableInputs.get(i);
 
-	    if (!matchFound) {
-		return false;
-	    }
-	}
+                if (!stackInSlot.isEmpty() && req.ingredient().test(stackInSlot)) {
+                    matchedSlotIndices.add(i);
+                    availableInputs.set(i, ItemStack.EMPTY);
+                    matchFound = true;
+                    break;
+                }
+            }
 
-	if (!consumableReqs.isEmpty()) {
-	    Pair<List<Integer>, Boolean> itemPair = areItemsValid(consumableReqs, availableInputs);
-	    if (itemPair.getSecond()) {
-		setItemArrangement(index, itemPair.getFirst());
-		valid |= 1 << 2;
-	    } else {
-		return false;
-	    }
-	} else {
-	    valid |= 1 << 2;
-	}
+            if (!matchFound) {
+                return false;
+            }
+        }
+
+        if (!consumableReqs.isEmpty()) {
+            Pair<List<Integer>, Boolean> itemPair = areItemsValid(consumableReqs, availableInputs);
+            if (itemPair.getSecond()) {
+                matchedSlotIndices.addAll(itemPair.getFirst());
+                setItemArrangement(index, matchedSlotIndices);
+                valid |= 1 << 2;
+            } else {
+                return false;
+            }
+        } else {
+            setItemArrangement(index, matchedSlotIndices);
+            valid |= 1 << 2;
+        }
 
 	if (hasFluidInputs()) {
 	    Pair<List<Integer>, Boolean> fluidPair = areFluidsValid(getFluidIngredients(), pr.getHolder()
