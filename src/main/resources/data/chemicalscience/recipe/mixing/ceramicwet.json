@@ -8,7 +8,7 @@
   "group": "chemicalscience",
   "ingredients": [
     {
-      "tag": "c:clay"
+      "tag": "minecraft:clay_ball"
     },
     {
       "tag": "c:sands"
